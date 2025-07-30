@@ -1,0 +1,212 @@
+// Rules to maximize speed of detection of SparkRAT, maximize true positives (for closely related variants also), while minimizing false positives.
+// See the rule: MAL_APT_CRIME_RAT_GO_Unpacked_SparkRAT_Jul25.
+
+private rule MAL_APT_CRIME_RAT_GO_Unpacked_SparkRATUnmodifiedBuildIoCs
+{
+    meta:
+        description = "Fast detection of SparkRAT binaries generated using unmodified builds"
+        author = "F5 Labs"
+        date = "2025-07-30"
+        reference = "https://github.com/F5-Labs/SparkRAT-YARA-rules"
+
+    strings:
+        // SparkRAT internal method signature data that are included in even stripped Go binaries.
+        $s1 = "Spark/client/core.connectWS"
+        $s2 = "Spark/client/core.checkUpdate"
+        $s3 = "Spark/client/core.execCommand"
+
+    condition:
+        (
+            filesize > 5MB
+        ) and (
+            $s1
+            or $s2
+            or $s3
+        )
+}
+
+private rule MAL_APT_CRIME_RAT_GO_Unpacked_SparkRATBuildDependencyOverlap
+{
+    meta:
+        description = "Detection of SparkRAT binaries (and closely related variants) based on the degree of overlapping compile-time dependencies used."
+        author = "F5 Labs"
+        date = "2025-07-30"
+        reference = "https://github.com/F5-Labs/SparkRAT-YARA-rules"
+
+    strings:
+        $a1 = "dep\tgithub.com/"
+
+        // SparkRAT dependency names, versions, and hashes that are included in even stripped Go binaries.
+        $s1 = "dep\tgithub.com/creack/pty\tv1.1.18\th1:n56/Zwd5o6whRC5PMGretI4IdRLlmBXYNjScPaBgsbY"
+        $s2 = "dep\tgithub.com/denisbrodbeck/machineid\tv1.0.1\th1:geKr9qtkB876mXguW2X6TU4ZynleN6ezuMSRhl4D7AQ"
+        $s3 = "dep\tgithub.com/gen2brain/shm\tv0.0.0-20221026125803-c33c9e32b1c8\th1:u4/UVF0sNxlqDwCptjIUTUkZW4UoZDrcHzvd2kNnF/k"
+        $s4 = "dep\tgithub.com/gorilla/websocket\tv1.5.0\th1:PPwGk2jz7EePpoHN/+ClbZu8SPxiqlu12wZP/3sWmnc"
+        $s5 = "dep\tgithub.com/hashicorp/errwrap\tv1.0.0\th1:hLrqtEDnRye3+sgx6z4qVLNuviH3MR5aQ0ykNJa/UYA"
+        $s6 = "dep\tgithub.com/hashicorp/go-multierror\tv1.1.1\th1:H5DkEtf6CXdFp0N0Em5UCwQpXMWke8IA0+lD48awMYo"
+        $s7 = "dep\tgithub.com/imroc/req/v3\tv3.8.2\th1:wFZ7B0dclCQyjClP5GwXRboUGIek5l0mCpodrGgT01c"
+        $s8 = "dep\tgithub.com/jezek/xgb\tv1.1.0\th1:wnpxJzP1+rkbGclEkmwpVFQWpuE2PUGNUzP8SbfFobk"
+        $s9 = "dep\tgithub.com/json-iterator/go\tv1.1.12\th1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM"
+        $s10 = "dep\tgithub.com/kataras/golog\tv0.1.7\th1:0TY5tHn5L5DlRIikepcaRR/6oInIr9AiWsxzt0vvlBE"
+        $s11 = "dep\tgithub.com/kataras/pio\tv0.0.10\th1:b0qtPUqOpM2O+bqa5wr2O6dN4cQNwSmFd6HQqgVae0g"
+        $s12 = "dep\tgithub.com/kbinani/screenshot\tv0.0.0-20210720154843-7d3a670d8329\th1:qq2nCpSrXrmvDGRxW0ruW9BVEV1CN2a9YDOExdt+U0o"
+        $s13 = "dep\tgithub.com/modern-go/concurrent\tv0.0.0-20180306012644-bacd9c7ef1dd\th1:TRLaZ9cD/w8PVh93nsPXa1VrQ6jlwL5oN8l14QlcNfg"
+        $s14 = "dep\tgithub.com/modern-go/reflect2\tv1.0.2\th1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9Gz0M"
+        $s15 = "dep\tgithub.com/shirou/gopsutil/v3\tv3.22.2\th1:wCrArWFkHYIdDxx/FSfF5RB4dpJYW6t7rcp3+zL8uks"
+        $s16 = "dep\tgithub.com/tklauser/go-sysconf\tv0.3.9\th1:JeUVdAOWhhxVcU6Eqr/ATFHgXk/mmiItdKeJPev3vTo"
+        $s17 = "dep\tgithub.com/tklauser/numcpus\tv0.3.0\th1:ILuRUQBtssgnxw0XXIjKUC56fgnOrFoQQ/4+DeU2biQ"
+        $s18 = "dep\tgithub.com/creack/pty\tv1.1.18\th1:n56/Zwd5o6whRC5PMGretI4IdRLlmBXYNjScPaBgsbY"
+        $s19 = "dep\tgithub.com/denisbrodbeck/machineid\tv1.0.1\th1:geKr9qtkB876mXguW2X6TU4ZynleN6ezuMSRhl4D7AQ"
+        $s20 = "dep\tgithub.com/gen2brain/shm\tv0.0.0-20221026125803-c33c9e32b1c8\th1:u4/UVF0sNxlqDwCptjIUTUkZW4UoZDrcHzvd2kNnF/k"
+        $s21 = "dep\tgithub.com/gorilla/websocket\tv1.5.0\th1:PPwGk2jz7EePpoHN/+ClbZu8SPxiqlu12wZP/3sWmnc"
+        $s22 = "dep\tgithub.com/hashicorp/errwrap\tv1.0.0\th1:hLrqtEDnRye3+sgx6z4qVLNuviH3MR5aQ0ykNJa/UYA"
+        $s23 = "dep\tgithub.com/hashicorp/go-multierror\tv1.1.1\th1:H5DkEtf6CXdFp0N0Em5UCwQpXMWke8IA0+lD48awMYo"
+        $s24 = "dep\tgithub.com/imroc/req/v3\tv3.8.2\th1:wFZ7B0dclCQyjClP5GwXRboUGIek5l0mCpodrGgT01c"
+        $s25 = "dep\tgithub.com/jezek/xgb\tv1.1.0\th1:wnpxJzP1+rkbGclEkmwpVFQWpuE2PUGNUzP8SbfFobk"
+        $s26 = "dep\tgithub.com/json-iterator/go\tv1.1.12\th1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM"
+        $s27 = "dep\tgithub.com/kataras/golog\tv0.1.7\th1:0TY5tHn5L5DlRIikepcaRR/6oInIr9AiWsxzt0vvlBE"
+        $s28 = "dep\tgithub.com/kataras/pio\tv0.0.10\th1:b0qtPUqOpM2O+bqa5wr2O6dN4cQNwSmFd6HQqgVae0g"
+        $s29 = "dep\tgithub.com/kbinani/screenshot\tv0.0.0-20210720154843-7d3a670d8329\th1:qq2nCpSrXrmvDGRxW0ruW9BVEV1CN2a9YDOExdt+U0o"
+        $s30 = "dep\tgithub.com/modern-go/concurrent\tv0.0.0-20180306012644-bacd9c7ef1dd\th1:TRLaZ9cD/w8PVh93nsPXa1VrQ6jlwL5oN8l14QlcNfg"
+        $s31 = "dep\tgithub.com/modern-go/reflect2\tv1.0.2\th1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9Gz0M"
+        $s32 = "dep\tgithub.com/shirou/gopsutil/v3\tv3.22.2\th1:wCrArWFkHYIdDxx/FSfF5RB4dpJYW6t7rcp3+zL8uks"
+        $s33 = "dep\tgithub.com/tklauser/go-sysconf\tv0.3.9\th1:JeUVdAOWhhxVcU6Eqr/ATFHgXk/mmiItdKeJPev3vTo"
+        $s34 = "dep\tgithub.com/tklauser/numcpus\tv0.3.0\th1:ILuRUQBtssgnxw0XXIjKUC56fgnOrFoQQ/4+DeU2biQ"
+
+    condition:
+        (
+            filesize > 5MB
+        ) and (
+            #a1 >= 30 and #a1 < 45
+            and 30 of ($s*)
+        )
+}
+
+private rule MAL_APT_CRIME_RAT_GO_Unpacked_SparkRATMethodOverlap 
+{
+    meta:
+        description = "Detection of SparkRAT binaries (and closely related variants) based on the degree of overlapping internal method signatures used."
+        author = "F5 Labs"
+        date = "2025-07-30"
+        reference = "https://github.com/F5-Labs/SparkRAT-YARA-rules"
+
+    strings:
+        // SparkRAT internal method signature suffixes that are included in even stripped Go binaries.
+        $s1 = "common.(*Conn).GetSecret"
+        $s2 = "common.(*Conn).SendCallback"
+        $s3 = "common.(*Conn).SendData"
+        $s4 = "common.(*Conn).SendPack"
+        $s5 = "common.(*Conn).SendRawData"
+        $s6 = "common.CreateClient"
+        $s7 = "common.CreateConn"
+        $s8 = "common.init"
+        $s9 = "config.GetBaseURL"
+        $s10 = "core.checkUpdate"
+        $s11 = "core.connectWS"
+        $s12 = "core.execCommand"
+        $s13 = "core.fetchFile"
+        $s14 = "core.GetCPUInfo"
+        $s15 = "core.getDesktop"
+        $s16 = "core.GetDevice"
+        $s17 = "core.GetDiskInfo"
+        $s18 = "core.GetLocalIP"
+        $s19 = "core.GetMacAddress"
+        $s20 = "core.GetNetIOInfo"
+        $s21 = "core.GetPartialInfo"
+        $s22 = "core.GetRAMInfo"
+        $s23 = "core.handleAct"
+        $s24 = "core.handleWS"
+        $s25 = "core.hibernate"
+        $s26 = "core.init"
+        $s27 = "core.inputRawTerminal"
+        $s28 = "core.inputTerminal"
+        $s29 = "core.isPrivateIP"
+        $s30 = "core.killDesktop"
+        $s31 = "core.killProcess"
+        $s32 = "core.killTerminal"
+        $s33 = "core.listFiles"
+        $s34 = "core.listProcesses"
+        $s35 = "core.lock"
+        $s36 = "core.logoff"
+        $s37 = "core.map.init.0"
+        $s38 = "core.offline"
+        $s39 = "core.ping"
+        $s40 = "core.removeFiles"
+        $s41 = "core.reportWS"
+        $s42 = "core.resizeTerminal"
+        $s43 = "core.restart"
+        $s44 = "core.screenshot"
+        $s45 = "core.shutdown"
+        $s46 = "core.Start"
+        $s47 = "core.suspend"
+        $s48 = "core.uploadFiles"
+        $s49 = "core.uploadTextFile"
+        $s50 = "service/basic.Hibernate"
+        $s51 = "service/basic.Lock"
+        $s52 = "service/basic.Logoff"
+        $s53 = "service/basic.Restart"
+        $s54 = "service/basic.Shutdown"
+        $s55 = "service/basic.Suspend"
+        $s56 = "service/desktop.GetDesktop"
+        $s57 = "service/desktop.getDiff"
+        $s58 = "service/desktop.getImageBlock"
+        $s59 = "service/desktop.handleDesktop"
+        $s60 = "service/desktop.healthCheck"
+        $s61 = "service/desktop.imageCompare"
+        $s62 = "service/desktop.init"
+        $s63 = "service/desktop.InitDesktop"
+        $s64 = "service/desktop.isDiff"
+        $s65 = "service/desktop.KillDesktop"
+        $s66 = "service/desktop.makeImageBlock"
+        $s67 = "service/desktop.PingDesktop"
+        $s68 = "service/desktop.quitAllDesktop"
+        $s69 = "service/desktop.(*Screen).Capture"
+        $s70 = "service/desktop.(*Screen).Init"
+        $s71 = "service/desktop.sendImageDiff"
+        $s72 = "service/desktop.splitFullImage"
+        $s73 = "service/desktop.worker"
+        $s74 = "service/file.FetchFile"
+        $s75 = "service/file.getTempFile"
+        $s76 = "service/file.init"
+        $s77 = "service/file.listFiles"
+        $s78 = "service/file.ListFiles"
+        $s79 = "service/file.RemoveFiles"
+        $s80 = "service/file.UploadFiles"
+        $s81 = "service/file.uploadMulti"
+        $s82 = "service/file.uploadSingle"
+        $s83 = "service/file.UploadTextFile"
+        $s84 = "service/process.KillProcess"
+        $s85 = "service/process.ListProcesses"
+        $s86 = "service/screenshot.GetScreenshot"
+        $s87 = "service/terminal.doKillTerminal"
+        $s88 = "service/terminal.getTerminal"
+        $s89 = "service/terminal.healthCheck"
+        $s90 = "service/terminal.init"
+        $s91 = "service/terminal.InitTerminal"
+        $s92 = "service/terminal.InputRawTerminal"
+        $s93 = "service/terminal.InputTerminal"
+        $s94 = "service/terminal.KillTerminal"
+        $s95 = "service/terminal.PingTerminal"
+        $s96 = "service/terminal.ResizeTerminal"
+
+    condition:
+        (
+            filesize > 5MB
+        ) and (
+            50 of ($s*)
+        )
+}
+
+rule MAL_APT_CRIME_RAT_GO_Unpacked_SparkRAT_Jul25
+{
+    meta:
+        description = "High confidence detection of SparkRAT binaries (and closely related variants) based on inherent compile time artifacts."
+        author = "F5 Labs"
+        date = "2025-07-30"
+        reference = "https://github.com/F5-Labs/SparkRAT-YARA-rules"
+
+    condition:
+        // Private rules to maximize speed of detection, maximize true positives (for closely related variants also), while minimizing false positives.
+        MAL_APT_CRIME_RAT_GO_Unpacked_SparkRATUnmodifiedBuildIoCs
+        or MAL_APT_CRIME_RAT_GO_Unpacked_SparkRATBuildDependencyOverlap
+        or MAL_APT_CRIME_RAT_GO_Unpacked_SparkRATMethodOverlap
+}
